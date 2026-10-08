@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Login from './components/Login/Login'
@@ -10,10 +10,20 @@ import ConexoesAdmin from './components/ConexoesAdmin/ConexoesAdmin'
 import CategoriasAdmin from './components/CategoriasAdmin/CategoriasAdmin'
 import PerfisAdmin from './components/PerfisAdmin/PerfisAdmin'
 import UsuariosAdmin from './components/UsuariosAdmin/UsuariosAdmin'
+import AuditoriaAdmin from './components/Auditoria/AuditoriaAdmin'
+import ChamadosAdmin from './components/Chamados/ChamadosAdmin'
+import ConfigEmailsAdmin from './components/ConfigEmails/ConfigEmailsAdmin'
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
+import { initGlobalMonitor } from './services/monitorService'
 
 function AppContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { currentUser, userProfile, logout } = useAuth();
+
+  useEffect(() => {
+    // Inicializa o auto-monitoramento global de erros (JavaScript e Promises)
+    initGlobalMonitor();
+  }, []);
 
   if (!currentUser) {
     return <Login />;
@@ -75,6 +85,26 @@ function AppContent() {
                 <span className="nav-icon">👥</span> {isSidebarOpen && <span className="nav-text">Usuários</span>}
               </Link>
             )}
+
+            {(hasAccess('chamados') || hasAccess('auditoria') || hasAccess('emails')) && (
+              isSidebarOpen ? <div className="nav-group-title">Monitoramento & TI</div> : <div className="nav-group-title" style={{textAlign:'center'}}>---</div>
+            )}
+
+            {hasAccess('chamados') && (
+              <Link to="/chamados" className="nav-item" title="Monitoramento e Chamados Automáticos">
+                <span className="nav-icon">🎫</span> {isSidebarOpen && <span className="nav-text">Chamados e TI</span>}
+              </Link>
+            )}
+            {hasAccess('auditoria') && (
+              <Link to="/auditoria" className="nav-item" title="Auditoria de Acesso e Indicadores">
+                <span className="nav-icon">📈</span> {isSidebarOpen && <span className="nav-text">Auditoria & Indicadores</span>}
+              </Link>
+            )}
+            {hasAccess('emails') && (
+              <Link to="/emails" className="nav-item" title="Configurações de E-mails">
+                <span className="nav-icon">✉️</span> {isSidebarOpen && <span className="nav-text">Configuração E-mails</span>}
+              </Link>
+            )}
             
             <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
                <button onClick={logout} className="nav-item" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', color: '#ff4d4f' }}>
@@ -85,17 +115,22 @@ function AppContent() {
         </aside>
         
         <main className="main-content" onClick={() => isSidebarOpen && setIsSidebarOpen(false)}>
-          <Routes>
-            {hasAccess('print') && <Route path="/" element={<PrintOperacional />} />}
-            {hasAccess('admin') && <Route path="/admin" element={<TemplateDashboard />} />}
-            {hasAccess('editor') && <Route path="/editor" element={<TemplateEditor />} />}
-            {hasAccess('editor') && <Route path="/editor/:id" element={<TemplateEditor />} />}
-            {hasAccess('conexoes') && <Route path="/conexoes" element={<ConexoesAdmin />} />}
-            {hasAccess('categorias') && <Route path="/categorias" element={<CategoriasAdmin />} />}
-            {hasAccess('perfis') && <Route path="/perfis" element={<PerfisAdmin />} />}
-            {hasAccess('usuarios') && <Route path="/usuarios" element={<UsuariosAdmin />} />}
-            <Route path="*" element={<div style={{padding: '40px'}}><h2>Bem-vindo! Selecione uma opção no menu lateral.</h2></div>} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              {hasAccess('print') && <Route path="/" element={<PrintOperacional />} />}
+              {hasAccess('admin') && <Route path="/admin" element={<TemplateDashboard />} />}
+              {hasAccess('editor') && <Route path="/editor" element={<TemplateEditor />} />}
+              {hasAccess('editor') && <Route path="/editor/:id" element={<TemplateEditor />} />}
+              {hasAccess('conexoes') && <Route path="/conexoes" element={<ConexoesAdmin />} />}
+              {hasAccess('categorias') && <Route path="/categorias" element={<CategoriasAdmin />} />}
+              {hasAccess('perfis') && <Route path="/perfis" element={<PerfisAdmin />} />}
+              {hasAccess('usuarios') && <Route path="/usuarios" element={<UsuariosAdmin />} />}
+              {hasAccess('chamados') && <Route path="/chamados" element={<ChamadosAdmin />} />}
+              {hasAccess('auditoria') && <Route path="/auditoria" element={<AuditoriaAdmin />} />}
+              {hasAccess('emails') && <Route path="/emails" element={<ConfigEmailsAdmin />} />}
+              <Route path="*" element={<div style={{padding: '40px'}}><h2>Bem-vindo! Selecione uma opção no menu lateral.</h2></div>} />
+            </Routes>
+          </ErrorBoundary>
         </main>
       </div>
     </Router>
@@ -111,3 +146,4 @@ function App() {
 }
 
 export default App
+

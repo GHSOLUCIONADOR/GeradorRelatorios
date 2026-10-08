@@ -15,7 +15,10 @@ export default function PerfisAdmin() {
     { id: 'conexoes', nome: 'Conexões ERP' },
     { id: 'categorias', nome: 'Categorias' },
     { id: 'perfis', nome: 'Perfis de Acesso' },
-    { id: 'usuarios', nome: 'Usuários e Convites' }
+    { id: 'usuarios', nome: 'Usuários e Convites' },
+    { id: 'auditoria', nome: 'Auditoria e Indicadores' },
+    { id: 'chamados', nome: 'Monitoramento e Chamados' },
+    { id: 'emails', nome: 'Configuração de E-mails' }
   ];
 
   useEffect(() => {

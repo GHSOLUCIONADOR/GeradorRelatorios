@@ -1,0 +1,107 @@
+[
+  {
+    "evento_id": "NOVO_CHAMADO",
+    "evento_nome": "Abertura de Chamado (Automático ou Manual)",
+    "assunto": "[GH Relatórios - TI] Novo Chamado Aberto: CHM-20261008-1044 - Erro ao gerar etiqueta de teste",
+    "destinatarios": [
+      "ana.araujo@ghlogistica.com.br",
+      "ti@ghlogistica.com.br"
+    ],
+    "remetente": "sistema@ghlogistica.com.br",
+    "status": "SIMULADO_SEM_SMTP",
+    "detalhes": "SMTP não configurado. O disparo foi processado e simulado com sucesso.",
+    "dados_contexto": {
+      "protocolo": "CHM-20261008-1044",
+      "titulo": "Erro ao gerar etiqueta de teste",
+      "mensagem": "ReferenceError: zplCode is not defined",
+      "stack": "ReferenceError: zplCode is not defined at test.js:10:5",
+      "status": "a_fazer",
+      "usuario_email": "ana.araujo@ghlogistica.com.br",
+      "url_tela": "/print"
+    },
+    "data_envio": "2026-10-08T20:22:07.335Z"
+  },
+  {
+    "evento_id": "CHAMADO_STATUS_ALTERADO",
+    "evento_nome": "Mudança de Status do Chamado",
+    "assunto": "[GH Relatórios] Atualização de Status: Chamado 2 chamados em lote (em_andamento)",
+    "destinatarios": [
+      "ana.araujo@ghlogistica.com.br"
+    ],
+    "remetente": "sistema@ghlogistica.com.br",
+    "status": "SIMULADO_SEM_SMTP",
+    "detalhes": "SMTP não configurado. O disparo foi processado e simulado com sucesso.",
+    "dados_contexto": {
+      "protocolo": "2 chamados em lote",
+      "titulo": "Atualização em lote para status 'em_andamento'",
+      "status": "em_andamento",
+      "usuario_email": "ana.araujo@ghlogistica.com.br",
+      "url_tela": "/chamados"
+    },
+    "data_envio": "2026-10-08T20:22:07.333Z"
+  },
+  {
+    "evento_id": "NOVO_CHAMADO",
+    "evento_nome": "Abertura de Chamado (Automático ou Manual)",
+    "assunto": "[GH Relatórios - TI] Novo Chamado Aberto: CHM-20261008-3044 - Ajuste solicitado no layout",
+    "destinatarios": [
+      "ana.araujo@ghlogistica.com.br",
+      "ti@ghlogistica.com.br"
+    ],
+    "remetente": "sistema@ghlogistica.com.br",
+    "status": "SIMULADO_SEM_SMTP",
+    "detalhes": "SMTP não configurado. O disparo foi processado e simulado com sucesso.",
+    "dados_contexto": {
+      "id": "chm_1791490927329_bpez90",
+      "protocolo": "CHM-20261008-3044",
+      "titulo": "Ajuste solicitado no layout",
+      "mensagem": "Ajustar margem superior",
+      "stack": "",
+      "origem": "MANUAL",
+      "tipo_erro": "RUNTIME_JAVASCRIPT",
+      "status": "a_fazer",
+      "prioridade": "media",
+      "usuario_email": "ti@ghlogistica.com.br",
+      "usuario_nome": "",
+      "url_tela": "/editor",
+      "navegador": "",
+      "ocorrencias": 1,
+      "observacoes": "",
+      "data_criacao": "2026-10-08T20:22:07.328Z",
+      "data_atualizacao": "2026-10-08T20:22:07.328Z"
+    },
+    "data_envio": "2026-10-08T20:22:07.330Z"
+  },
+  {
+    "evento_id": "NOVO_CHAMADO",
+    "evento_nome": "Abertura de Chamado (Automático ou Manual)",
+    "assunto": "[GH Relatórios - TI] Novo Chamado Aberto: CHM-20261008-1044 - Erro ao gerar etiqueta de teste",
+    "destinatarios": [
+      "ana.araujo@ghlogistica.com.br",
+      "ti@ghlogistica.com.br"
+    ],
+    "remetente": "sistema@ghlogistica.com.br",
+    "status": "SIMULADO_SEM_SMTP",
+    "detalhes": "SMTP não configurado. O disparo foi processado e simulado com sucesso.",
+    "dados_contexto": {
+      "id": "chm_1791490927326_cgjmgi",
+      "protocolo": "CHM-20261008-1044",
+      "titulo": "Erro ao gerar etiqueta de teste",
+      "mensagem": "ReferenceError: zplCode is not defined",
+      "stack": "ReferenceError: zplCode is not defined at test.js:10:5",
+      "origem": "AUTOMATICO",
+      "tipo_erro": "RUNTIME_JAVASCRIPT",
+      "status": "a_fazer",
+      "prioridade": "alta",
+      "usuario_email": "ana.araujo@ghlogistica.com.br",
+      "usuario_nome": "",
+      "url_tela": "/print",
+      "navegador": "",
+      "ocorrencias": 1,
+      "observacoes": "",
+      "data_criacao": "2026-10-08T20:22:07.325Z",
+      "data_atualizacao": "2026-10-08T20:22:07.325Z"
+    },
+    "data_envio": "2026-10-08T20:22:07.327Z"
+  }
+]

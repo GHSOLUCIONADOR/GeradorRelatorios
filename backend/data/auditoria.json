@@ -1,0 +1,73 @@
+[
+  {
+    "id": "aud_1791490927332_bgco5a",
+    "data_hora": "2026-10-08T20:22:07.332Z",
+    "data_hora_formatada": "08/10/2026, 17:22:07",
+    "tipo_processo": "ATUALIZACAO_CHAMADO_LOTE",
+    "descricao": "Alteração em lote: 2 chamado(s) atualizado(s) para status 'em_andamento'",
+    "usuario_email": "ana.araujo@ghlogistica.com.br",
+    "usuario_nome": "ana.araujo",
+    "detalhes": {
+      "quantidade": 2,
+      "ids": [
+        "chm_1791490927326_cgjmgi",
+        "chm_1791490927329_bpez90"
+      ],
+      "novo_status": "em_andamento"
+    },
+    "status": "sucesso",
+    "ip": "127.0.0.1",
+    "user_agent": ""
+  },
+  {
+    "id": "aud_1791490927329_0dt5o4",
+    "data_hora": "2026-10-08T20:22:07.329Z",
+    "data_hora_formatada": "08/10/2026, 17:22:07",
+    "tipo_processo": "ABERTURA_CHAMADO",
+    "descricao": "Chamado CHM-20261008-3044 aberto (MANUAL): Ajuste solicitado no layout",
+    "usuario_email": "ti@ghlogistica.com.br",
+    "usuario_nome": "ti",
+    "detalhes": {
+      "protocolo": "CHM-20261008-3044",
+      "origem": "MANUAL",
+      "prioridade": "media",
+      "url_tela": "/editor"
+    },
+    "status": "sucesso",
+    "ip": "127.0.0.1",
+    "user_agent": ""
+  },
+  {
+    "id": "aud_1791490927326_693sqg",
+    "data_hora": "2026-10-08T20:22:07.326Z",
+    "data_hora_formatada": "08/10/2026, 17:22:07",
+    "tipo_processo": "ABERTURA_CHAMADO",
+    "descricao": "Chamado CHM-20261008-1044 aberto (AUTOMATICO): Erro ao gerar etiqueta de teste",
+    "usuario_email": "ana.araujo@ghlogistica.com.br",
+    "usuario_nome": "ana.araujo",
+    "detalhes": {
+      "protocolo": "CHM-20261008-1044",
+      "origem": "AUTOMATICO",
+      "prioridade": "alta",
+      "url_tela": "/print"
+    },
+    "status": "sucesso",
+    "ip": "127.0.0.1",
+    "user_agent": ""
+  },
+  {
+    "id": "aud_1791490927309_bbltf0",
+    "data_hora": "2026-10-08T20:22:07.309Z",
+    "data_hora_formatada": "08/10/2026, 17:22:07",
+    "tipo_processo": "LOGIN",
+    "descricao": "Teste de login de usuario",
+    "usuario_email": "ana.araujo@ghlogistica.com.br",
+    "usuario_nome": "Ana Araujo",
+    "detalhes": {
+      "tela": "/login"
+    },
+    "status": "sucesso",
+    "ip": "127.0.0.1",
+    "user_agent": ""
+  }
+]

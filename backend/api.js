@@ -39,6 +39,9 @@ function decrypt(text) {
 const multer = require('multer');
 const { db } = require('./firebase-config');
 const zebraPrinterService = require('./ZebraPrinterService');
+const emailService = require('./emailService');
+const auditService = require('./auditService');
+const ticketService = require('./ticketService');
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -598,8 +601,6 @@ router.delete('/conexoes_banco/:id', async (req, res) => {
     }
 });
 
-module.exports = router;
-
 // --- ROTAS PARA PERFIS DE ACESSO ---
 
 // Listar Perfis (GET)
@@ -804,18 +805,25 @@ router.get('/me', async (req, res) => {
 
 // --- ROTA DE SEEDING (Inicialização) ---
 // Rota para criar o perfil Administrador e o usuário Ana Araujo
+const TELAS_ADMIN_COMPLETAS = ['print', 'admin', 'editor', 'conexoes', 'categorias', 'perfis', 'usuarios', 'auditoria', 'chamados', 'emails'];
+
 router.get('/setup-auth', async (req, res) => {
     try {
         // 1. Verifica se já existe um perfil Administrador
         let adminProfileId = null;
-        const perfisSnap = await db.collection('perfis').where('isAdmin', '==', true).get();
+        let perfisSnap = { empty: true };
+        try {
+            perfisSnap = await db.collection('perfis').where('isAdmin', '==', true).get();
+        } catch (e) {
+            console.warn('[setup-auth] Firestore query fallback:', e.message);
+        }
         
         if (perfisSnap.empty) {
             // Cria o perfil
             const newAdmin = {
                 nome: 'Administrador',
                 isAdmin: true,
-                telas_acesso: ['print', 'admin', 'editor', 'conexoes', 'categorias', 'perfis', 'usuarios'],
+                telas_acesso: TELAS_ADMIN_COMPLETAS,
                 categorias_modelos: 'todas',
                 data_criacao: new Date().toISOString()
             };
@@ -824,24 +832,32 @@ router.get('/setup-auth', async (req, res) => {
             console.log('Perfil Administrador criado.');
         } else {
             adminProfileId = perfisSnap.docs[0].id;
-            console.log('Perfil Administrador já existia.');
+            // Garante que o perfil existente contenha as novas telas
+            try {
+                await db.collection('perfis').doc(adminProfileId).update({
+                    telas_acesso: TELAS_ADMIN_COMPLETAS
+                });
+            } catch (e) { /* ignore */ }
+            console.log('Perfil Administrador atualizado com novas telas.');
         }
 
         // 2. Verifica se a Ana já está cadastrada
         const emailAna = 'ana.araujo@ghlogistica.com.br';
-        const anaSnap = await db.collection('usuarios').where('email', '==', emailAna).get();
+        let anaSnap = { empty: true };
+        try {
+            anaSnap = await db.collection('usuarios').where('email', '==', emailAna).get();
+        } catch (e) { /* ignore */ }
 
         if (anaSnap.empty) {
             const anaUser = {
                 email: emailAna,
                 perfil_id: adminProfileId,
-                status: 'ativo', // Já ativa para não precisar ser convidada novamente
+                status: 'ativo',
                 data_criacao: new Date().toISOString()
             };
             await db.collection('usuarios').add(anaUser);
             console.log('Usuário Ana criado.');
         } else {
-            // Atualiza caso o perfil ID esteja diferente
             await db.collection('usuarios').doc(anaSnap.docs[0].id).update({
                 perfil_id: adminProfileId
             });
@@ -851,6 +867,263 @@ router.get('/setup-auth', async (req, res) => {
         res.json({ success: true, message: 'Setup de Auth concluído!' });
     } catch (error) {
         console.error('Erro no setup-auth:', error);
-        res.status(500).json({ error: 'Erro interno no setup de auth.' });
+        res.status(500).json({ error: 'Erro interno no setup de auth: ' + error.message });
     }
 });
+
+// ==========================================
+// --- ROTAS DE AUDITORIA E INDICADORES ---
+// ==========================================
+
+// Registrar Ação de Auditoria (POST)
+router.post('/auditoria', async (req, res) => {
+    try {
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+        const userAgent = req.headers['user-agent'] || '';
+        const { tipo_processo, descricao, usuario_email, usuario_nome, detalhes, status } = req.body;
+
+        const log = await auditService.registrarAcao({
+            tipo_processo,
+            descricao,
+            usuario_email,
+            usuario_nome,
+            detalhes,
+            status,
+            ip,
+            user_agent: userAgent
+        }, db);
+
+        res.json({ success: true, log });
+    } catch (error) {
+        console.error('Erro ao registrar auditoria:', error);
+        res.status(500).json({ error: 'Erro ao registrar auditoria: ' + error.message });
+    }
+});
+
+// Listar Logs de Auditoria com Filtros (GET)
+router.get('/auditoria', async (req, res) => {
+    try {
+        const filtros = {
+            data_inicio: req.query.data_inicio,
+            data_fim: req.query.data_fim,
+            usuario_email: req.query.usuario_email,
+            tipo_processo: req.query.tipo_processo,
+            status: req.query.status,
+            limite: req.query.limite || 200
+        };
+        const logs = await auditService.listarLogs(filtros, db);
+        res.json(logs);
+    } catch (error) {
+        console.error('Erro ao listar auditoria:', error);
+        res.status(500).json({ error: 'Erro ao buscar logs de auditoria.' });
+    }
+});
+
+// Indicadores e Dashboard de Auditoria (GET)
+router.get('/auditoria/indicadores', async (req, res) => {
+    try {
+        const filtros = {
+            data_inicio: req.query.data_inicio,
+            data_fim: req.query.data_fim,
+            usuario_email: req.query.usuario_email,
+            tipo_processo: req.query.tipo_processo
+        };
+        const indicadores = await auditService.obterIndicadores(filtros, db);
+        res.json(indicadores);
+    } catch (error) {
+        console.error('Erro ao obter indicadores de auditoria:', error);
+        res.status(500).json({ error: 'Erro ao calcular indicadores.' });
+    }
+});
+
+// ==========================================
+// --- ROTAS DE MONITORAMENTO E CHAMADOS ---
+// ==========================================
+
+// Listar Chamados com Filtros (GET)
+router.get('/chamados', async (req, res) => {
+    try {
+        const filtros = {
+            status: req.query.status,
+            prioridade: req.query.prioridade,
+            origem: req.query.origem,
+            busca: req.query.busca,
+            data_inicio: req.query.data_inicio,
+            data_fim: req.query.data_fim,
+            usuario_email: req.query.usuario_email
+        };
+        const chamados = await ticketService.listarChamados(filtros, db);
+        res.json(chamados);
+    } catch (error) {
+        console.error('Erro ao listar chamados:', error);
+        res.status(500).json({ error: 'Erro ao buscar chamados.' });
+    }
+});
+
+// Obter Resumo de Chamados (KPIs) (GET)
+router.get('/chamados/resumo', async (req, res) => {
+    try {
+        const resumo = await ticketService.obterResumoChamados(db);
+        res.json(resumo);
+    } catch (error) {
+        console.error('Erro ao obter resumo de chamados:', error);
+        res.status(500).json({ error: 'Erro ao obter resumo de chamados.' });
+    }
+});
+
+// Criar Chamado (Automático ou Manual) (POST)
+router.post('/chamados', async (req, res) => {
+    try {
+        const chamado = await ticketService.criarChamado(req.body, db);
+        res.status(201).json(chamado);
+    } catch (error) {
+        console.error('Erro ao criar chamado:', error);
+        res.status(500).json({ error: 'Erro ao registrar chamado: ' + error.message });
+    }
+});
+
+// Atualizar Chamado Individual (PUT)
+router.put('/chamados/:id', async (req, res) => {
+    try {
+        const usuarioEmail = req.body.usuario_email || req.query.usuario_email || '';
+        const chamado = await ticketService.atualizarChamado(req.params.id, req.body, usuarioEmail, db);
+        res.json(chamado);
+    } catch (error) {
+        console.error('Erro ao atualizar chamado:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Alterar Status de Múltiplos Chamados em Lote (POST)
+router.post('/chamados/em-lote/status', async (req, res) => {
+    try {
+        const { ids, status, usuario_email } = req.body;
+        const resultado = await ticketService.alterarStatusEmLote(ids, status, usuario_email, db);
+        res.json(resultado);
+    } catch (error) {
+        console.error('Erro ao atualizar chamados em lote:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Excluir Chamado Individual (DELETE)
+router.delete('/chamados/:id', async (req, res) => {
+    try {
+        const usuarioEmail = req.query.usuario_email || '';
+        const resultado = await ticketService.excluirChamado(req.params.id, usuarioEmail, db);
+        res.json(resultado);
+    } catch (error) {
+        console.error('Erro ao excluir chamado:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Excluir Chamados em Lote (POST)
+router.post('/chamados/em-lote/excluir', async (req, res) => {
+    try {
+        const { ids, usuario_email } = req.body;
+        const resultado = await ticketService.excluirEmLote(ids, usuario_email, db);
+        res.json(resultado);
+    } catch (error) {
+        console.error('Erro ao excluir chamados em lote:', error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ==========================================
+// --- ROTAS DE CONFIGURAÇÃO DE E-MAILS ---
+// ==========================================
+
+// Buscar Regras de Notificação (GET)
+router.get('/notificacoes/regras', async (req, res) => {
+    try {
+        const regras = await emailService.getRegras(db);
+        res.json(regras);
+    } catch (error) {
+        console.error('Erro ao buscar regras de e-mail:', error);
+        res.status(500).json({ error: 'Erro ao carregar regras de notificação.' });
+    }
+});
+
+// Atualizar Regras de Notificação (PUT)
+router.put('/notificacoes/regras', async (req, res) => {
+    try {
+        const { regras, usuario_email } = req.body;
+        const atualizadas = await emailService.saveRegras(regras, db);
+        await auditService.registrarAcao({
+            tipo_processo: 'CONFIGURACAO_EMAIL',
+            descricao: 'Regras de disparo automático de e-mail atualizadas',
+            usuario_email: usuario_email || 'Administrador',
+            detalhes: { quantidade_regras: Array.isArray(regras) ? regras.length : 0 }
+        }, db);
+        res.json({ success: true, regras: atualizadas });
+    } catch (error) {
+        console.error('Erro ao salvar regras de e-mail:', error);
+        res.status(500).json({ error: 'Erro ao salvar regras: ' + error.message });
+    }
+});
+
+// Obter Configurações SMTP (GET)
+router.get('/notificacoes/config-smtp', async (req, res) => {
+    try {
+        const config = emailService.getSmtpConfig();
+        res.json({
+            host: config.host,
+            port: config.port,
+            secure: config.secure,
+            user: config.user,
+            remetente_nome: config.remetente_nome,
+            remetente_email: config.remetente_email,
+            tem_senha: Boolean(config.pass)
+        });
+    } catch (error) {
+        console.error('Erro ao buscar config SMTP:', error);
+        res.status(500).json({ error: 'Erro ao buscar dados SMTP.' });
+    }
+});
+
+// Salvar Configurações SMTP (POST)
+router.post('/notificacoes/config-smtp', async (req, res) => {
+    try {
+        const resultado = emailService.saveSmtpConfig(req.body);
+        await auditService.registrarAcao({
+            tipo_processo: 'CONFIGURACAO_SMTP',
+            descricao: `Configurações do servidor SMTP atualizadas: ${req.body.host || 'Padrão'}`,
+            usuario_email: req.body.usuario_email || 'Administrador'
+        }, db);
+        res.json({ success: true, config: resultado });
+    } catch (error) {
+        console.error('Erro ao salvar config SMTP:', error);
+        res.status(500).json({ error: 'Erro ao salvar SMTP: ' + error.message });
+    }
+});
+
+// Testar Disparo de E-mail (POST)
+router.post('/notificacoes/teste', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'E-mail de destino é obrigatório.' });
+        }
+        const resultado = await emailService.testarDisparo(email, db);
+        res.json(resultado);
+    } catch (error) {
+        console.error('Erro no teste de e-mail:', error);
+        res.status(500).json({ error: 'Erro no disparo de teste: ' + error.message });
+    }
+});
+
+// Histórico de E-mails Disparados (GET)
+router.get('/notificacoes/historico', async (req, res) => {
+    try {
+        const limite = req.query.limite || 50;
+        const historico = await emailService.getHistorico(db, limite);
+        res.json(historico);
+    } catch (error) {
+        console.error('Erro ao buscar histórico de e-mails:', error);
+        res.status(500).json({ error: 'Erro ao buscar histórico.' });
+    }
+});
+
+module.exports = router;
+

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, googleProvider, signInWithPopup, signOut } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { setUsuarioAuditoria, registrarAcaoAuditoria } from '../services/auditService';
+import { setUsuarioMonitor } from '../services/monitorService';
 
 const AuthContext = createContext();
 
@@ -28,10 +30,26 @@ export function AuthProvider({ children }) {
             await signOut(auth);
             setCurrentUser(null);
             setUserProfile(null);
+            setUsuarioAuditoria(null);
+            setUsuarioMonitor(null);
           } else {
             setCurrentUser(firebaseUser);
             setUserProfile(data.perfil); // { telas_acesso, categorias_modelos, isAdmin }
+            setUsuarioAuditoria(firebaseUser);
+            setUsuarioMonitor(firebaseUser);
             setError('');
+
+            // Registrar Auditoria de Login
+            registrarAcaoAuditoria({
+              tipo_processo: 'LOGIN',
+              descricao: `Usuário autenticado com sucesso no sistema`,
+              usuario_email: firebaseUser.email,
+              usuario_nome: firebaseUser.displayName,
+              detalhes: {
+                provedor: firebaseUser.providerData?.[0]?.providerId || 'google',
+                isAdmin: data.perfil?.isAdmin || false
+              }
+            });
           }
         } catch (err) {
           console.error(err);
@@ -39,10 +57,14 @@ export function AuthProvider({ children }) {
           await signOut(auth);
           setCurrentUser(null);
           setUserProfile(null);
+          setUsuarioAuditoria(null);
+          setUsuarioMonitor(null);
         }
       } else {
         setCurrentUser(null);
         setUserProfile(null);
+        setUsuarioAuditoria(null);
+        setUsuarioMonitor(null);
       }
       setLoading(false);
     });
@@ -61,6 +83,14 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    if (currentUser) {
+      registrarAcaoAuditoria({
+        tipo_processo: 'LOGOUT',
+        descricao: `Usuário desconectou-se do sistema`,
+        usuario_email: currentUser.email,
+        usuario_nome: currentUser.displayName
+      });
+    }
     return signOut(auth);
   };
 
