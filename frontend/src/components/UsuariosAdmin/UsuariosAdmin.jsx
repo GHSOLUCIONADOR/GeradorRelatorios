@@ -105,7 +105,7 @@ export default function UsuariosAdmin() {
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Gerenciar Usuários e Convites</h2>
+        <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">Usuários e Acessos</h1>
         {!isEditing && (
           <button onClick={handleNovo} style={{ padding: '10px 20px', backgroundColor: '#0d6efd', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
             + Convidar Usuário

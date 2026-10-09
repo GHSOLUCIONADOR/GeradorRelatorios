@@ -805,7 +805,7 @@ router.get('/me', async (req, res) => {
 
 // --- ROTA DE SEEDING (Inicialização) ---
 // Rota para criar o perfil Administrador e o usuário Ana Araujo
-const TELAS_ADMIN_COMPLETAS = ['print', 'admin', 'editor', 'conexoes', 'categorias', 'perfis', 'usuarios', 'auditoria', 'chamados', 'emails'];
+const TELAS_ADMIN_COMPLETAS = ['print', 'admin', 'editor', 'conexoes', 'categorias', 'perfis', 'usuarios', 'auditoria', 'chamados', 'emails', 'branding'];
 
 router.get('/setup-auth', async (req, res) => {
     try {
@@ -1122,6 +1122,52 @@ router.get('/notificacoes/historico', async (req, res) => {
     } catch (error) {
         console.error('Erro ao buscar histórico de e-mails:', error);
         res.status(500).json({ error: 'Erro ao buscar histórico.' });
+    }
+});
+
+// --- ROTAS DE IDENTIDADE VISUAL (BRANDING) ---
+router.get('/branding', async (req, res) => {
+    try {
+        let brandingData = {
+            logoUrl: 'https://buckettiimagens.s3.us-east-2.amazonaws.com/Imagens-s3/logo+GH+branco.png',
+            iconUrl: 'https://ghsolucionador.github.io/LogoseIcons/ICON%20-%20GHRelatorios.jpg',
+            appName: 'GHRelatórios'
+        };
+        if (db) {
+            const docSnap = await db.collection('settings').doc('branding').get();
+            if (docSnap.exists) {
+                brandingData = { ...brandingData, ...docSnap.data() };
+            }
+        }
+        res.status(200).json(brandingData);
+    } catch (err) {
+        console.error('Erro ao buscar branding:', err);
+        res.status(200).json({
+            logoUrl: 'https://buckettiimagens.s3.us-east-2.amazonaws.com/Imagens-s3/logo+GH+branco.png',
+            iconUrl: 'https://ghsolucionador.github.io/LogoseIcons/ICON%20-%20GHRelatorios.jpg',
+            appName: 'GHRelatórios'
+        });
+    }
+});
+
+router.post('/branding', async (req, res) => {
+    try {
+        const { logoUrl, iconUrl, faviconUrl, appName } = req.body;
+        const iconFinal = iconUrl || faviconUrl || 'https://ghsolucionador.github.io/LogoseIcons/ICON%20-%20GHRelatorios.jpg';
+        const brandingData = {
+            logoUrl: logoUrl || 'https://buckettiimagens.s3.us-east-2.amazonaws.com/Imagens-s3/logo+GH+branco.png',
+            iconUrl: iconFinal,
+            faviconUrl: iconFinal,
+            appName: appName || 'GHRelatórios',
+            atualizado_em: new Date().toISOString()
+        };
+        if (db) {
+            await db.collection('settings').doc('branding').set(brandingData, { merge: true });
+        }
+        res.status(200).json({ success: true, ...brandingData });
+    } catch (err) {
+        console.error('Erro ao salvar branding:', err);
+        res.status(500).json({ error: 'Erro ao salvar identidade visual.' });
     }
 });
 

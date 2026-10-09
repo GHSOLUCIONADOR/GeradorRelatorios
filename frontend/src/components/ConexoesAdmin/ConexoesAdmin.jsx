@@ -84,7 +84,7 @@ export default function ConexoesAdmin() {
   return (
     <div className="admin-container">
       <div className="admin-header">
-        <h1>Conexões de Banco de Dados (ERPs)</h1>
+        <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">Conexões de Banco de Dados (ERPs)</h1>
         <button className="btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>+ Nova Conexão</button>
       </div>
 

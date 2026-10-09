@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { reportarErroSistema } from '../../services/monitorService';
+import { Button, Modal, Badge, Card, CardHeader, CardTitle, CardContent, Input } from '../ui';
 import './ChamadosAdmin.css';
 
 export default function ChamadosAdmin() {
@@ -265,8 +266,12 @@ export default function ChamadosAdmin() {
       {/* Cabeçalho */}
       <div className="tickets-header">
         <div className="tickets-header-title">
-          <h1>🎫 Monitoramento e Chamados Automáticos</h1>
-          <p>O próprio aplicativo se auto-monitora capturando exceções e notificando o TI em tempo real.</p>
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
+            Chamados e TI
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            O próprio aplicativo se auto-monitora capturando exceções e notificando o TI em tempo real.
+          </p>
         </div>
 
         <div className="tickets-header-actions">
@@ -558,78 +563,84 @@ export default function ChamadosAdmin() {
       )}
 
       {/* MODAL 1: Exportar em Modelo de Prompt para IA */}
-      {modalPrompt && (
-        <div className="audit-modal-backdrop" onClick={() => setModalPrompt(false)}>
-          <div className="prompt-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="audit-modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🤖</span>
-                <div>
-                  <h3 style={{ margin: 0 }}>Modelo de Prompt para IA / Antigravity</h3>
-                  <small style={{ color: '#64748b' }}>{selecionados.length} chamado(s) exportado(s) e formatado(s)</small>
-                </div>
-              </div>
-              <button className="btn-close-modal" onClick={() => setModalPrompt(false)}>✕</button>
+      <Modal
+        isOpen={modalPrompt}
+        onClose={() => setModalPrompt(false)}
+        title="Modelo de Prompt para IA / Antigravity"
+        description={`${selecionados.length} chamado(s) exportado(s) e formatado(s)`}
+        size="lg"
+        footer={
+          <div className="flex w-full items-center justify-between">
+            <div>
+              {copiadoSucesso && (
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  ✅ Prompt copiado! Cole aqui no chat (Ctrl+V).
+                </span>
+              )}
             </div>
-
-            <p style={{ fontSize: '13px', color: '#475569', marginBottom: '14px' }}>
-              Copie o prompt estruturado abaixo e cole diretamente aqui na nossa conversa para que possamos analisar a causa raiz e corrigir os arquivos do código automaticamente:
-            </p>
-
-            <textarea
-              readOnly
-              value={promptGerado}
-              className="prompt-textarea"
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-              <div>
-                {copiadoSucesso && (
-                  <span className="prompt-copy-success">
-                    ✅ Prompt copiado! Basta colar aqui no chat da IA (Ctrl+V).
-                  </span>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={handleCopiarPrompt}
-                  className="btn-primary-action"
-                  style={{ backgroundColor: '#ff6700' }}
-                >
-                  📋 Copiar Prompt para Área de Transferência
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalPrompt(false)}
-                  className="btn-secondary-action"
-                >
-                  Fechar
-                </button>
-              </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setModalPrompt(false)}
+              >
+                Fechar
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleCopiarPrompt}
+              >
+                📋 Copiar Prompt
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        }
+      >
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
+          Copie o prompt estruturado abaixo e cole diretamente aqui na nossa conversa para que possamos analisar a causa raiz e corrigir os arquivos do código automaticamente:
+        </p>
+        <textarea
+          readOnly
+          value={promptGerado}
+          className="prompt-textarea w-full font-mono text-xs rounded-lg p-3 bg-zinc-900 text-zinc-100"
+          rows={12}
+        />
+      </Modal>
 
       {/* MODAL 2: Detalhes do Chamado Individual */}
-      {modalDetalhes && (
-        <div className="audit-modal-backdrop" onClick={() => setModalDetalhes(null)}>
-          <div className="audit-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="audit-modal-header">
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: '#09339e', textTransform: 'uppercase' }}>
-                  {modalDetalhes.protocolo}
-                </span>
-                <h3 style={{ margin: '4px 0 0' }}>{modalDetalhes.titulo}</h3>
-              </div>
-              <button className="btn-close-modal" onClick={() => setModalDetalhes(null)}>✕</button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '20px', padding: '12px', background: '#f8fafc', borderRadius: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: '600' }}>Alterar Status:</span>
+      <Modal
+        isOpen={!!modalDetalhes}
+        onClose={() => setModalDetalhes(null)}
+        title={modalDetalhes ? `${modalDetalhes.protocolo}: ${modalDetalhes.titulo}` : ''}
+        size="lg"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setModalDetalhes(null)}
+            >
+              Fechar
+            </Button>
+            {modalDetalhes && (
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setSelecionados([modalDetalhes.id]);
+                  setModalDetalhes(null);
+                  setTimeout(handleAbrirModalPrompt, 100);
+                }}
+              >
+                🤖 Gerar Prompt deste Chamado
+              </Button>
+            )}
+          </>
+        }
+      >
+        {modalDetalhes && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+              <span className="text-xs font-semibold">Alterar Status:</span>
               <button
+                type="button"
                 onClick={() => handleAtualizarStatusIndividual(modalDetalhes.id, 'a_fazer')}
                 className={`btn-bulk-status btn-status-afazer ${modalDetalhes.status === 'a_fazer' ? 'active' : ''}`}
                 style={{ opacity: modalDetalhes.status === 'a_fazer' ? 1 : 0.4 }}
@@ -637,6 +648,7 @@ export default function ChamadosAdmin() {
                 A Fazer
               </button>
               <button
+                type="button"
                 onClick={() => handleAtualizarStatusIndividual(modalDetalhes.id, 'em_andamento')}
                 className={`btn-bulk-status btn-status-andamento ${modalDetalhes.status === 'em_andamento' ? 'active' : ''}`}
                 style={{ opacity: modalDetalhes.status === 'em_andamento' ? 1 : 0.4 }}
@@ -644,6 +656,7 @@ export default function ChamadosAdmin() {
                 Em Andamento
               </button>
               <button
+                type="button"
                 onClick={() => handleAtualizarStatusIndividual(modalDetalhes.id, 'finalizado')}
                 className={`btn-bulk-status btn-status-finalizado ${modalDetalhes.status === 'finalizado' ? 'active' : ''}`}
                 style={{ opacity: modalDetalhes.status === 'finalizado' ? 1 : 0.4 }}
@@ -652,140 +665,117 @@ export default function ChamadosAdmin() {
               </button>
             </div>
 
-            <div className="modal-detail-row">
-              <span className="label">Origem:</span>
-              <span className="value">{modalDetalhes.origem}</span>
-            </div>
-            <div className="modal-detail-row">
-              <span className="label">Prioridade:</span>
-              <span className="value">{(modalDetalhes.prioridade || 'media').toUpperCase()}</span>
-            </div>
-            <div className="modal-detail-row">
-              <span className="label">Tela / URL:</span>
-              <span className="value">{modalDetalhes.url_tela || '/'}</span>
-            </div>
-            <div className="modal-detail-row">
-              <span className="label">Usuário:</span>
-              <span className="value">{modalDetalhes.usuario_email}</span>
-            </div>
-            <div className="modal-detail-row">
-              <span className="label">Data de Registro:</span>
-              <span className="value">{new Date(modalDetalhes.data_criacao).toLocaleString('pt-BR')}</span>
-            </div>
-            <div className="modal-detail-row">
-              <span className="label">Navegador:</span>
-              <span className="value" style={{ fontSize: '11px', color: '#64748b' }}>{modalDetalhes.navegador}</span>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-500">Origem:</span>
+                <span className="font-semibold">{modalDetalhes.origem}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-500">Prioridade:</span>
+                <span className="font-semibold">{(modalDetalhes.prioridade || 'media').toUpperCase()}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-500">Tela / URL:</span>
+                <span className="font-mono">{modalDetalhes.url_tela || '/'}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-500">Usuário:</span>
+                <span>{modalDetalhes.usuario_email}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-500">Data de Registro:</span>
+                <span>{new Date(modalDetalhes.data_criacao).toLocaleString('pt-BR')}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-500">Navegador:</span>
+                <span className="text-zinc-400 truncate max-w-xs">{modalDetalhes.navegador}</span>
+              </div>
             </div>
 
-            <div style={{ marginTop: '16px' }}>
-              <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
-                Mensagem de Erro:
-              </label>
-              <div style={{ background: '#fef2f2', borderLeft: '4px solid #ef4444', padding: '12px', borderRadius: '4px', color: '#991b1b', fontSize: '13px', margin: '6px 0 16px' }}>
+            <div>
+              <label className="text-xs font-bold text-zinc-500 uppercase">Mensagem de Erro:</label>
+              <div className="bg-red-50 dark:bg-red-950/30 border-l-4 border-red-500 p-3 rounded text-xs text-red-700 dark:text-red-300 mt-1">
                 {modalDetalhes.mensagem || 'Sem mensagem adicional'}
               </div>
             </div>
 
             {modalDetalhes.stack && (
               <div>
-                <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
-                  Stack Trace:
-                </label>
-                <pre className="json-code-box" style={{ maxHeight: '180px' }}>
+                <label className="text-xs font-bold text-zinc-500 uppercase">Stack Trace:</label>
+                <pre className="json-code-box max-h-40 overflow-auto text-xs p-3 rounded bg-zinc-900 text-zinc-100 mt-1">
                   {modalDetalhes.stack}
                 </pre>
               </div>
             )}
-
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button
-                onClick={() => {
-                  setSelecionados([modalDetalhes.id]);
-                  setModalDetalhes(null);
-                  setTimeout(handleAbrirModalPrompt, 100);
-                }}
-                className="btn-primary-action"
-                style={{ backgroundColor: '#ff6700' }}
-              >
-                🤖 Gerar Prompt deste Chamado
-              </button>
-              <button
-                onClick={() => setModalDetalhes(null)}
-                className="btn-secondary-action"
-              >
-                Fechar
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* MODAL 3: Novo Chamado Manual */}
-      {modalNovoManual && (
-        <div className="audit-modal-backdrop" onClick={() => setModalNovoManual(false)}>
-          <div className="audit-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="audit-modal-header">
-              <h3>✍️ Abrir Novo Chamado Manual</h3>
-              <button className="btn-close-modal" onClick={() => setModalNovoManual(false)}>✕</button>
-            </div>
+      <Modal
+        isOpen={modalNovoManual}
+        onClose={() => setModalNovoManual(false)}
+        title="Abrir Novo Chamado Manual"
+        size="md"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setModalNovoManual(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="form-novo-chamado-manual"
+              variant="primary"
+            >
+              Salvar e Disparar E-mail
+            </Button>
+          </>
+        }
+      >
+        <form id="form-novo-chamado-manual" onSubmit={handleSalvarManual} className="space-y-4">
+          <Input
+            label="Título do Chamado *"
+            required
+            placeholder="Ex: Falha ao carregar modelo de etiqueta Zebra"
+            value={formManual.titulo}
+            onChange={e => setFormManual({ ...formManual, titulo: e.target.value })}
+          />
 
-            <form onSubmit={handleSalvarManual}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>
-                  Título do Chamado *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Falha ao carregar modelo de etiqueta Zebra"
-                  value={formManual.titulo}
-                  onChange={e => setFormManual({ ...formManual, titulo: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>
-                  Prioridade
-                </label>
-                <select
-                  value={formManual.prioridade}
-                  onChange={e => setFormManual({ ...formManual, prioridade: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                >
-                  <option value="baixa">Baixa</option>
-                  <option value="media">Média</option>
-                  <option value="alta">Alta</option>
-                  <option value="critica">Crítica (Notificação Emergencial)</option>
-                </select>
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>
-                  Descrição / Detalhes do Problema *
-                </label>
-                <textarea
-                  required
-                  rows="4"
-                  placeholder="Descreva o que ocorreu, passos para reproduzir ou o que precisa ser ajustado..."
-                  value={formManual.mensagem}
-                  onChange={e => setFormManual({ ...formManual, mensagem: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button type="submit" className="btn-primary-action">
-                  Salvar e Disparar E-mail
-                </button>
-                <button type="button" onClick={() => setModalNovoManual(false)} className="btn-secondary-action">
-                  Cancelar
-                </button>
-              </div>
-            </form>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+              Prioridade
+            </label>
+            <select
+              value={formManual.prioridade}
+              onChange={e => setFormManual({ ...formManual, prioridade: e.target.value })}
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 py-2 text-sm text-zinc-900 dark:text-zinc-100"
+            >
+              <option value="baixa">Baixa</option>
+              <option value="media">Média</option>
+              <option value="alta">Alta</option>
+              <option value="critica">Crítica (Notificação Emergencial)</option>
+            </select>
           </div>
-        </div>
-      )}
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+              Descrição / Detalhes do Problema *
+            </label>
+            <textarea
+              required
+              rows={4}
+              placeholder="Descreva o que ocorreu, passos para reproduzir ou o que precisa ser ajustado..."
+              value={formManual.mensagem}
+              onChange={e => setFormManual({ ...formManual, mensagem: e.target.value })}
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 py-2 text-sm text-zinc-900 dark:text-zinc-100"
+            />
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

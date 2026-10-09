@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button, Modal, Badge } from '../ui';
 import './AuditoriaAdmin.css';
 
 export default function AuditoriaAdmin() {
@@ -127,8 +128,12 @@ export default function AuditoriaAdmin() {
       {/* Cabeçalho */}
       <div className="audit-header">
         <div className="audit-header-title">
-          <h1>🛡️ Auditoria de Acesso e Indicadores</h1>
-          <p>Rastreabilidade completa de todas as operações, impressões e acessos dos usuários.</p>
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
+            Auditoria e Indicadores
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Rastreabilidade completa de todas as operações, impressões e acessos dos usuários.
+          </p>
         </div>
 
         <div className="audit-tabs">
@@ -473,14 +478,22 @@ export default function AuditoriaAdmin() {
       )}
 
       {/* Modal de Detalhes da Ação */}
-      {logSelecionado && (
-        <div className="audit-modal-backdrop" onClick={() => setLogSelecionado(null)}>
-          <div className="audit-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="audit-modal-header">
-              <h3>🔍 Detalhes da Ação de Auditoria</h3>
-              <button className="btn-close-modal" onClick={() => setLogSelecionado(null)}>✕</button>
-            </div>
-
+      <Modal
+        isOpen={!!logSelecionado}
+        onClose={() => setLogSelecionado(null)}
+        title="Detalhes da Ação de Auditoria"
+        size="lg"
+        footer={
+          <Button
+            variant="secondary"
+            onClick={() => setLogSelecionado(null)}
+          >
+            Fechar
+          </Button>
+        }
+      >
+        {logSelecionado && (
+          <div className="space-y-3">
             <div className="modal-detail-row">
               <span className="label">Data/Hora:</span>
               <span className="value">{logSelecionado.data_hora_formatada || logSelecionado.data_hora}</span>
@@ -514,23 +527,13 @@ export default function AuditoriaAdmin() {
               <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
                 Metadados & Parâmetros (JSON):
               </label>
-              <pre className="json-code-box">
+              <pre className="json-code-box max-h-48 overflow-auto">
                 {JSON.stringify(logSelecionado.detalhes || {}, null, 2)}
               </pre>
             </div>
-
-            <div style={{ marginTop: '24px', textAlign: 'right' }}>
-              <button
-                onClick={() => setLogSelecionado(null)}
-                className="btn-primary-action"
-                style={{ marginLeft: 'auto' }}
-              >
-                Fechar
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

@@ -22,11 +22,16 @@ export function AuthProvider({ children }) {
         try {
           // Check if user is in our backend (invited)
           const res = await fetch(`/api/me?email=${encodeURIComponent(firebaseUser.email)}`);
-          const data = await res.json();
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (e) {
+            data = {};
+          }
 
           if (!res.ok) {
             // Not invited or no profile
-            setError(data.error || 'Acesso negado.');
+            setError(data.error || 'Acesso negado ou servidor indisponível.');
             await signOut(auth);
             setCurrentUser(null);
             setUserProfile(null);

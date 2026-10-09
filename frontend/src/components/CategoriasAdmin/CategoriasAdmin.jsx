@@ -64,7 +64,7 @@ export default function CategoriasAdmin() {
   return (
     <div className="admin-container">
       <div className="admin-header">
-        <h1>Categorias de Modelos</h1>
+        <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">Categorias de Modelos</h1>
         <button className="btn-primary" onClick={() => {
           setFormData({ id: null, nome: '', descricao: '' });
           setShowModal(true);

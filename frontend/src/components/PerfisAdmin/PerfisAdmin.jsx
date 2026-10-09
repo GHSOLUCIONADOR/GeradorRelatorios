@@ -18,7 +18,8 @@ export default function PerfisAdmin() {
     { id: 'usuarios', nome: 'Usuários e Convites' },
     { id: 'auditoria', nome: 'Auditoria e Indicadores' },
     { id: 'chamados', nome: 'Monitoramento e Chamados' },
-    { id: 'emails', nome: 'Configuração de E-mails' }
+    { id: 'emails', nome: 'Configuração de E-mails' },
+    { id: 'branding', nome: 'Identidade Visual' }
   ];
 
   useEffect(() => {
@@ -127,7 +128,7 @@ export default function PerfisAdmin() {
   return (
     <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Perfis de Acesso</h2>
+        <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">Perfis de Acesso</h1>
         {!isEditing && (
           <button onClick={handleNovo} style={{ padding: '10px 20px', backgroundColor: '#0d6efd', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
             + Novo Perfil

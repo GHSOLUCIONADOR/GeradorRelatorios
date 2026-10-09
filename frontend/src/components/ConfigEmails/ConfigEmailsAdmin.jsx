@@ -132,8 +132,8 @@ export default function ConfigEmailsAdmin() {
   return (
     <div className="emails-container">
       <div className="emails-header">
-        <h1>✉️ Configurações de Disparo de E-mails</h1>
-        <p>Defina as regras automáticas de quem deve receber e-mails conforme a execução de processos e abertura de chamados.</p>
+        <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">Configuração de E-mails</h1>
+        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">Defina as regras automáticas de quem deve receber e-mails conforme a execução de processos e abertura de chamados.</p>
       </div>
 
       <div className="emails-grid">
